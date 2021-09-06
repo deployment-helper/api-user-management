@@ -1,0 +1,124 @@
+name: "User Management"
+trigger:
+  - master
+  - develop
+  - feature/*
+  - bugfix/*
+stages:
+  - stage: "Install_and_Build"
+    displayName: "Test and Build"
+    jobs:
+      - job: "npm_nstall_and_build"
+        displayName: "Install and Build"
+        steps:
+          - task: NodeTool@0
+            displayName: "Setup Node.Js Environment"
+            inputs:
+              versionSpec: "v12.16.1"
+          - script: npm install
+            displayName: "Installing Dependencies"
+          - script: npm run test:cov
+            displayName: "Unit Test"
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFormat: "JUnit"
+              testResultsFiles: "**/test-*.xml"
+              failTaskOnFailedTests: true
+              testRunTitle: "Jest Test"
+          - script: npm run build:webpack
+            displayName: "Building Package"
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: "$(Build.Repository.LocalPath)/dist"
+              includeRootFolder: true
+              archiveType: "zip"
+              archiveFile: "$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip"
+              replaceExistingArchive: true
+              verbose: true
+
+          - task: PublishBuildArtifacts@1
+            inputs:
+              PathtoPublish: "$(Build.ArtifactStagingDirectory)"
+              ArtifactName: "build"
+              publishLocation: "Container"
+  - stage: Deploy
+    displayName: "Deploy"
+    jobs:
+      - job: "Deploy_to_Dev"
+        displayName: "DeployTODev"
+        condition: "and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/develop'))"
+        variables:
+          - group: "DevEnv"
+        steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              buildType: "current"
+              downloadType: "single"
+              artifactName: "build"
+              downloadPath: "$(System.ArtifactsDirectory)"
+          - task: ExtractFiles@1
+            inputs:
+              archiveFilePatterns: "$(System.ArtifactsDirectory)/build/$(Build.BuildId).zip"
+              destinationFolder: "$(System.ArtifactsDirectory)/dist"
+              cleanDestinationFolder: true
+          - script: |
+              node '$(System.ArtifactsDirectory)/dist/dist/app.js' > '$(System.ArtifactsDirectory)/dist/dist/app.yaml'
+            displayName: "Generate AppEngine Config"
+          - script: cat '$(System.ArtifactsDirectory)/dist/dist/app.yaml'
+            displayName: "Debug"
+          - task: DownloadSecureFile@1
+            displayName: "Download GCP Key"
+            name: "AuthKey"
+            inputs:
+              secureFile: "dev-quiz-platform-1309c15db500.json"
+              retryCount: "2"
+          - script: |
+              wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
+              tar zxvf google-cloud-sdk.tar.gz && ./google-cloud-sdk/install.sh --quiet --usage-reporting=false --path-update=true
+              PATH="google-cloud-sdk/bin:${PATH}"
+              gcloud --quiet components update
+            displayName: "install gcloud SDK"
+          - script: |
+              gcloud auth activate-service-account --key-file $(AuthKey.secureFilePath)
+              gcloud config set project $(GCP_PROJECT_NAME)
+            displayName: "Activate Service Account"
+          - script: yes | gcloud app deploy '$(System.ArtifactsDirectory)/dist/dist'
+            displayName: "Deploy to AppEngine"
+      - job: "Deploy_to_Prod"
+        displayName: "DeployToProd"
+        condition: "and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))"
+        variables:
+          - group: "ProdEnv"
+        steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              buildType: "current"
+              downloadType: "single"
+              artifactName: "build"
+              downloadPath: "$(System.ArtifactsDirectory)"
+          - task: ExtractFiles@1
+            inputs:
+              archiveFilePatterns: "$(System.ArtifactsDirectory)/build/$(Build.BuildId).zip"
+              destinationFolder: "$(System.ArtifactsDirectory)/dist"
+              cleanDestinationFolder: true
+          - script: |
+              node '$(System.ArtifactsDirectory)/dist/dist/app.js' > '$(System.ArtifactsDirectory)/dist/dist/app.yaml'
+            displayName: "Generate AppEngine config"
+          - task: DownloadSecureFile@1
+            displayName: "Download GCP Key"
+            name: "AuthKey"
+            inputs:
+              secureFile: "prod-quiz-platform-7445bd9834fb.json"
+              retryCount: "2"
+          - script: |
+              wget https://dl.google.com/dl/cloudsdk/release/google-cloud-sdk.tar.gz
+              tar zxvf google-cloud-sdk.tar.gz && ./google-cloud-sdk/install.sh --quiet --usage-reporting=false --path-update=true
+              PATH="google-cloud-sdk/bin:${PATH}"
+              gcloud --quiet components update
+            displayName: "install gcloud SDK"
+          - script: |
+              gcloud auth activate-service-account --key-file $(AuthKey.secureFilePath)
+              gcloud config set project $(GCP_PROJECT_NAME)
+            displayName: "Activate Service Account"
+          - script: yes | gcloud app deploy '$(System.ArtifactsDirectory)/dist/dist'
+            displayName: "Deploy to AppEngine"
