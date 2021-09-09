@@ -5,10 +5,8 @@ describe("User model tests", () => {
   });
   test("Should return jwtObject", () => {
     const u = new User();
-    u.firstName = "vinay";
-    u.lastName = "mavi";
+    u.name = "vinay";
     u.email = "vinaymavi@gmail.com";
-    u.password = "password";
     expect(u.jwtObject).toBeTruthy();
     const jwtObj = u.jwtObject();
     expect(jwtObj.password).toBeFalsy();

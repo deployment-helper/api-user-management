@@ -6,7 +6,8 @@
   "scripts": {
     "test": "jest --verbose -i",
     "test:cov": "jest --coverage --verbose",
-    "test:watch": "jest --watch --verbose",
+    "test:w": "jest --watch --verbose",
+    "test:f": "jest --watch ",
     "dev": "nodemon",
     "build": "npm run clean && tsc",
     "build:webpack": "webpack",
@@ -27,7 +28,7 @@
   "homepage": "https://github.com/vinaymavi/nodejs-template#readme",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
-    "@sendgrid/mail": "^7.1.1",
+    "@octokit/rest": "^18.10.0",
     "bcrypt": "^4.0.1",
     "cors": "^2.8.5",
     "express": "^4.17.1",
@@ -35,6 +36,7 @@
     "express-jwt": "^5.3.3",
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.7",
+    "swagger-ui-express": "^4.1.6",
     "winston": "^3.2.1"
   },
   "devDependencies": {
@@ -53,7 +55,7 @@
     "jest": "^25.1.0",
     "jest-junit-reporter": "^1.1.0",
     "mockingoose": "^2.13.2",
-    "node-mocks-http": "^1.8.1",
+    "node-mocks-http": "^1.10.1",
     "nodemon": "^2.0.2",
     "prettier": "^2.0.4",
     "pretty-quick": "^2.0.1",

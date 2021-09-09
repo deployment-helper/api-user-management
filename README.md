@@ -18,6 +18,9 @@ Mongodb configuration can be find in file `src/config/index.ts`
 
 `npm run dev`
 
+- Generate Github token for a client id
+  https://codesandbox.io/s/github-login-z84u9
+
 ### Environment variables
 
 **GOOGLE_APPLICATION_CREDENTIALS**

@@ -2,7 +2,6 @@ import { Eval } from "./eval";
 import { DefaultRoles } from "../constants";
 import { ErrorBadReq } from "../errors";
 import { EntityHelper } from "../helpers/entity.helper";
-import { Email } from "./email";
 
 function createPermissionsBYRole(
   role: string,
@@ -51,10 +50,19 @@ function createNewPermissions(
   return Array.from(permissions);
 }
 
+function parseQueryString(queryString: string) {
+  const parsedObject: any = {};
+  queryString.split("&").forEach((item) => {
+    const itemArr = item.split("=");
+    parsedObject[itemArr[0]] = itemArr[1];
+  });
+  return parsedObject;
+}
+
 export {
-  Eval,
-  createPermissionsBYRole,
   createNewPermissions,
+  createPermissionsBYRole,
+  Eval,
   removePermissions,
-  Email,
+  parseQueryString,
 };

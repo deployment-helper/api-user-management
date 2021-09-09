@@ -1,3 +1,4 @@
+import { LoginProvider } from "../constants";
 import {
   ILoginReq,
   IChangePassword,
@@ -9,8 +10,8 @@ import {
 describe("Interfaces Test", () => {
   it("IUser Should loaded", () => {
     const loginReq: ILoginReq = {
-      email: "vinay.mavi@gmail.com",
-      password: "password",
+      code: "fjdslfjdklfjdkl",
+      providerName: LoginProvider.GITHUB,
     };
     expect(loginReq).toBeTruthy();
   });
@@ -24,8 +25,6 @@ describe("Interfaces Test", () => {
   it("IUpdateUser Should loaded", () => {
     const req: IUpdateUser = {
       email: "email@email.com",
-      firstName: "firstName",
-      lastName: "lastName",
     };
     expect(req).toBeTruthy();
   });

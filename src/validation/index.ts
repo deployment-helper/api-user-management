@@ -1,23 +1,16 @@
 import Joi, { ObjectSchema } from "@hapi/joi";
+import { DefaultRoles, LoginProvider } from "../constants";
 
 const reqGetUserSchema: ObjectSchema = Joi.object({});
-const reqAddUserSchema: ObjectSchema = Joi.object({
-  firstName: Joi.string().alphanum().min(3).max(50),
-  lastName: Joi.string().alphanum().min(3).max(50),
-  email: Joi.string().email().required(),
-  password: Joi.string().min(6).max(16).required(),
-});
 
 const reqUpdateUserSchema: ObjectSchema = Joi.object({
-  firstName: Joi.string().alphanum().min(3).max(50),
-  lastName: Joi.string().alphanum().min(3).max(50),
-  email: Joi.string().email(),
+  name: Joi.string().min(3).max(50),
   mobile: Joi.string().min(6).max(15),
 });
 
 const regLoginSchema: ObjectSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().min(6).max(16).required(),
+  code: Joi.string().required(),
+  providerName: Joi.string().valid(...Object.values(LoginProvider)),
 });
 
 const reqChangePasswordSchema: ObjectSchema = Joi.object({
@@ -31,7 +24,7 @@ const reqCreateEntitySchema: ObjectSchema = Joi.object({
 });
 
 const reqAssignRules: ObjectSchema = Joi.object({
-  role: Joi.string().valid("reader", "writer", "maintainer", "owner"),
+  role: Joi.string().valid(...Object.values(DefaultRoles)),
 });
 
 const reqForgotPassword: ObjectSchema = Joi.object({
@@ -42,7 +35,6 @@ const reqResetPassword: ObjectSchema = Joi.object({
   password: Joi.string().min(6).max(16).required(),
 });
 export {
-  reqAddUserSchema,
   regLoginSchema,
   reqChangePasswordSchema,
   reqUpdateUserSchema,

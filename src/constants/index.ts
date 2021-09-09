@@ -20,6 +20,7 @@ export enum DefaultRoles {
   MAINTAINER = "maintainer",
   OWNER = "owner",
 }
+
 export const ErrorMessages = {
   "401": {
     userDoesNotExist: "User does not exist",
@@ -28,3 +29,7 @@ export const ErrorMessages = {
     badRequest: "Invalid request pyalod",
   },
 };
+
+export enum LoginProvider {
+  GITHUB = "github",
+}

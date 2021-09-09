@@ -1,18 +1,20 @@
 import { Document } from "mongoose";
 import { Request } from "express";
+
+import { LoginProvider } from "../constants";
+
 interface IUser extends Document {
   email: string;
-  firstName: string;
-  lastName: string;
-  password: string;
+  name: string;
+  avatarUrl: string;
   mobile?: string;
   permissions: Array<string>;
   jwtObject: any;
 }
 
 interface ILoginReq {
-  email: string;
-  password: string;
+  code: string;
+  providerName: LoginProvider;
 }
 
 interface IChangePassword {
@@ -21,8 +23,7 @@ interface IChangePassword {
 }
 interface IUpdateUser {
   email?: string;
-  firstName?: string;
-  lastName?: string;
+  name?: string;
   mobile?: string;
 }
 interface JwtRequest extends Request {

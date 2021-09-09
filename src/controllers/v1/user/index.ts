@@ -9,9 +9,10 @@ import {
   IUpdateUser,
   ICreateEntity,
   IAssignRoles,
+  ILoginReq,
 } from "../../../models/model.interfaces";
 import {
-  reqAddUserSchema,
+  regLoginSchema,
   reqChangePasswordSchema,
   reqCreateEntitySchema,
   reqUpdateUserSchema,
@@ -33,11 +34,13 @@ import {
   removePermissions,
   createPermissionsBYRole,
 } from "../../../util";
+import { UserHelper } from "../../../helpers";
 
 export class UserController extends BaseController {
   constructor() {
     super();
   }
+
   getuser(req: JwtRequest, resp: Response, next: NextFunction) {
     const body = req.body;
     this.validateReqSchema(reqGetUserSchema, body);
@@ -53,70 +56,36 @@ export class UserController extends BaseController {
         throw err;
       });
   }
-  addUser(req: Request, resp: Response, next: NextFunction) {
-    const body: IUser = req.body;
-    this.validateReqSchema(reqAddUserSchema, body);
-    const user = new UserModel();
-    user.firstName = body.firstName;
-    user.lastName = body.lastName;
-    user.email = body.email;
-    user.password = bcrypt.hashSync(body.password, BCRYPT.SALT_ROUNDS);
-    user.permissions = new Array<string>();
-    user.permissions.push(UserCons.DEFAULT_PERMISSION);
-    user
-      .save()
-      .then((result: Document) => {
-        resp.status(200).send(user);
-      })
-      .catch((err: Error) => {
-        next(err);
-      });
-  }
-  changePassword(req: JwtRequest, resp: Response, next: NextFunction) {
-    const body: IChangePassword = req.body;
-    let user: any;
-    this.validateReqSchema(reqChangePasswordSchema, body);
-    if (req.params.email === req.user.email) {
-      /**
-       * TODO: should use userHelper for login
-       */
-      UserModel.findOne({ email: req.params.email })
-        .exec()
-        .then(
-          (resultDoc): Promise<boolean> => {
-            user = resultDoc;
-            if (user !== null) {
-              return bcrypt.compare(body.oldPassword, user.password);
-            } else {
-              throw new ErrorUnAuthorizedAccess("User does not exist.");
-            }
-          }
-        )
-        .then((isValid: boolean) => {
-          if (isValid) {
-            try {
-              user.password = bcrypt.hashSync(
-                body.newPassword,
-                BCRYPT.SALT_ROUNDS
-              );
-              user.save();
-              resp.status(200).send(user);
-            } catch (error) {
-              throw error;
-            }
-          } else {
-            throw new ErrorUnAuthorizedAccess("In-Valid Email or Password");
-          }
+
+  async addUser(req: Request, resp: Response, next: NextFunction) {
+    const body: ILoginReq = req.body;
+
+    this.validateReqSchema(regLoginSchema, body);
+    try {
+      const fedratedUser: any = await UserHelper.getUser(
+        body.code,
+        body.providerName
+      );
+      const user = new UserModel();
+
+      user.name = fedratedUser.name;
+      user.avatarUrl = fedratedUser.avatar_url;
+      user.email = fedratedUser.email;
+      user.permissions = new Array<string>();
+      user.permissions.push(UserCons.DEFAULT_PERMISSION);
+      user
+        .save()
+        .then((result: Document) => {
+          resp.status(200).send(user);
         })
         .catch((err: Error) => {
           next(err);
         });
-    } else {
-      throw new ErrorUnAuthorizedAccess(
-        "User not autorized to update password."
-      );
+    } catch (err) {
+      next(err);
     }
   }
+
   updateUserDetails(req: JwtRequest, resp: Response, next: NextFunction) {
     const body: IUpdateUser = req.body;
     const jwtUser: IUser = req.user;
@@ -129,9 +98,7 @@ export class UserController extends BaseController {
             next(new ErrorUnAuthorizedAccess("User not exist."));
             return null;
           } else {
-            user.email = body.email ? body.email : user.email;
-            user.firstName = body.firstName ? body.firstName : user.firstName;
-            user.lastName = body.lastName ? body.lastName : user.lastName;
+            user.name = body.name ? body.name : user.name;
             user.mobile = body.mobile ? body.mobile : user.mobile;
             return user.save();
           }
@@ -180,6 +147,7 @@ export class UserController extends BaseController {
       throw new ErrorUnAuthorizedAccess("User not autorized");
     }
   }
+
   assignRoles(req: JwtRequest, resp: Response, next: NextFunction) {
     const body: IAssignRoles = req.body;
     const jwtUser: IUser = req.user;
@@ -217,6 +185,7 @@ export class UserController extends BaseController {
       throw new ErrorUnAuthorizedAccess("Not Authorized");
     }
   }
+
   removeRoles(req: JwtRequest, resp: Response, next: NextFunction) {
     const body: IAssignRoles = req.body;
     const jwtUser = req.user;
