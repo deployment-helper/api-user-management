@@ -2,11 +2,13 @@ import https from "https";
 import { TextEncoder } from "util";
 import { parseQueryString } from "../util";
 
+import { Config } from "config";
+
 export class Github {
   static getAccessToken(code: String): Promise<String> {
     const data = {
-      client_id: "1cc7e54aa125f0468d50",
-      client_secret: "0327fddc1e8337accb1be9051f6f9a56b17c5176",
+      client_id: Config.GITHUB_CLIENT_ID,
+      client_secret: Config.GITHUB_CLIENT_SECRET,
       code: code,
     };
     const encodedData = new TextEncoder().encode(JSON.stringify(data));
