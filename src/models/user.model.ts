@@ -11,7 +11,6 @@ const UserSchema: Schema = new Schema({
 UserSchema.methods.jwtObject = function () {
   const jwtObject = Object.assign({}, this.toJSON());
   delete jwtObject._id;
-  delete jwtObject.password;
   delete jwtObject.__v;
   return jwtObject;
 };
