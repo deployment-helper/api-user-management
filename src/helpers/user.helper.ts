@@ -4,8 +4,6 @@ import { Octokit } from "@octokit/rest";
 import { LoginProvider } from "../constants";
 import { ErrorBadReq } from "../errors";
 
-import { IUser } from "../models/model.interfaces";
-import UserModel from "../models/user.model";
 import { Github } from "./github.helper";
 
 export class UserHelper {

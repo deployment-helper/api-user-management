@@ -2,7 +2,7 @@ import https from "https";
 import { TextEncoder } from "util";
 import { parseQueryString } from "../util";
 
-import { Config } from "config";
+import { Config } from "../config";
 
 export class Github {
   static getAccessToken(code: String): Promise<String> {

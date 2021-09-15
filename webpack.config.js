@@ -21,12 +21,6 @@ module.exports = {
     filename: "server.js",
     path: path.resolve(__dirname, "dist"),
   },
-  plugins: [
-    new CopyPlugin([
-      { from: "./app.yaml", to: "./app.yaml" },
-      { from: "./app.js", to: "./app.js" },
-      { from: "./package.json", to: "./package.json" },
-    ]),
-  ],
+  plugins: [new CopyPlugin([{ from: "./package.json", to: "./package.json" }])],
   externals: [nodeExternals()],
 };
